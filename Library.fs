@@ -1,25 +1,42 @@
 ﻿namespace workscheduling
 
 module Scheduling =
-    type TimeSpan =
+    type Timespan =
         {
             Start : System.TimeOnly
             End : System.TimeOnly
         }
 
-    let getHours (t: TimeSpan) =
-        let timeBlock = (t.End - t.Start)
-        float timeBlock.Hours + (float timeBlock.Minutes / 60.0)
-
-    type Day =
+    let parseToTimespan (start : string) (endhr : string) =
         {
-            Date : System.DateOnly
-            Hours : TimeSpan
+            Start = System.TimeOnly.Parse start
+            End = System.TimeOnly.Parse endhr
         }
 
-    // use to instantiate Schedule Week
-    let makeWeekDays (startDate: System.DateOnly ) =
-        [| for i in 0 .. 6 -> startDate.AddDays i |]
+    type DayOfWeek =
+        | Monday = 1
+        | Tuesday = 2
+        | Wednesday = 3
+        | Thursday = 4
+        | Friday = 5
+        | Saturday = 6
+        | Sunday = 7
+
+    type OpenHours =
+        {
+            Day : DayOfWeek array
+            Times : Timespan array
+        }
+
+    let makeOpenHours (wkdaySpan : Timespan) (wkendSpan : Timespan) =
+        {
+            Day = [|
+                for day in 1..7 do enum<DayOfWeek> day
+            |]
+            Times = Array.append
+                [| for i in 1..5 do wkdaySpan |]
+                [| for i in 1..2 do wkendSpan |]
+        }
 
     type Address =
         {
@@ -35,83 +52,97 @@ module Scheduling =
     type Location =
         {
             Name : string
-            Addr : Address
-            OpenHours : Day array
+            Address : Address
+            OpenHours : OpenHours
         }
 
-    // DU to enforce type. to use Days inside Week
-    //  unwrap week
-    type Week = Week of Day array
-    let unwrapWeek (Week w) = w
-
-    type Schedule =
-        {
-            Week : Week
-            Location : Location
-        }
-    
     // generator function that returns next valid Id
     type Id = Id of uint32
     // closure to make sure each id is unique
-    let idGenerator =
+    let idGenerator () =
         let mutable id = Id 0u
-        let incr =
-            let unwrapId (Id i) = i
+        let unwrapId (Id i) = i
+        fun () ->
             id <- Id ((id |> unwrapId) + 1u)
             id
-        incr
 
-    let nextId = idGenerator
-
+    let nextPosNum = idGenerator ()
     type Position =
         {
             Name : string
             Id : Id // should be unique
         }
 
-    let makePosition name =
-        {
-            Name = name
-            Id = nextId
-        }
+    module EmployeeTypes =
+        let AD = { Name = "Assistant Director"; Id = nextPosNum () }
+        let Sensei = { Name = "Sensei"; Id = nextPosNum () }
 
+    let nextEmployeeNum = idGenerator ()
     type Employee =
         { 
             FirstName : string
             LastName : string
-            Availability : Schedule
-            Schedule : Schedule
-            EmployeeNumber : uint64
+            //Availability : Schedule
+            //Schedule : Schedule
+            EmployeeNumber : Id
             JobTitle : Position
             Priority : uint32
             DesiredWeeklyHours : uint8
         }
 
-    let totalHoursScheduled (e: Employee) =
-        let mutable totalHrs = 0.0
-        let days = (e.Schedule.Week |> unwrapWeek)
-        for day in days do
-            totalHrs <- totalHrs + (day.Hours |> getHours)
-        totalHrs
+    let makeEmployee first last pos pri desiredhrs =
+        { 
+            FirstName = first
+            LastName = last
+            EmployeeNumber = nextEmployeeNum ()
+            JobTitle = pos
+            Priority = pri
+            DesiredWeeklyHours = desiredhrs
+        }
 
-    // TODO:
-    // - enable editing Schedule objects
-    // - enable editing Day objects in arrays
-    // - make generator function that can be used with different underlying types
-    //    this would allow use for generating unique employee numbers and unique
-    //    Position Ids
-    // - enable editing employee priority
-    // - functions for core logic
-    //   - Create schedule
-    //     - Make constraints
-    //       - min 1 AD for each minute of open time at location
-    //       - min 1 sensei for every 3 students scheduled at location for date
-    //         - this should be configurable
-    //       - Pick AD and sensei according to configurable params
-    //         - Employee priority #
-    //         - Desired weekly hours met or not
-    //         - Schedule least hours possible for everyone
-    //       - Close for day if scheduled students < 6 (1 sensei and 1 AD required)
-    //   - Allow manual editing of schedule
-    //     - Do not allow employee to be scheduled in same block of time at 2 locations
-    //     - Do not allow employee to be scheduled in a block they aren't available
+    type TimeSlot =
+        {
+            TimeBlock : Timespan
+            Location : Location
+            EmployeesOnShift : Employee list
+            KidsScheduled : uint8
+        }
+
+
+    //// helper for calculating total hours employee scheduled or worked for
+    //let getHours (t: TimeSlot) =
+    //    let timeBlock = (t.Timespan.End - t.Timespan.Start)
+    //    float timeBlock.Hours + (float timeBlock.Minutes / 60.0)
+       
+
+    //let totalHoursScheduled (e: Employee) =
+    //    let mutable totalHrs = 0.0
+    //    let days = (e.Schedule.Week |> unwrapWeek)
+    //    for day in days do
+    //        totalHrs <- totalHrs + (day.Hours |> getHours)
+    //    totalHrs
+
+    //let getMostSeniorPos (el: Employee list) =
+    //    el
+    //    |> List.minBy (fun empl -> empl.JobTitle.Id)
+    //    |> (fun e -> e.JobTitle.Id)
+    
+    //let date = System.DateOnly.FromDayNumber 3
+    //printfn $"date: {date}"
+    //let emptyWeek (startDate: System.DateOnly) =
+    //    [|
+    //        // start from monday, make weekdays
+    //        for i in 0 .. 4 do
+    //            {
+    //                Date = startDate.AddDays i
+    //                Hours = normalWeekHrs
+                        
+    //            }
+    //    |]
+    //    |> Array.append [| for i in [ 5; 6 ] do { Date = startDate.AddDays i; Hours = normalWeekendHrs } |]
+    //    |> Week
+
+
+    //let pickEmployee (el: Employee list, p: Position) =
+    //    let lowestPri =
+            
