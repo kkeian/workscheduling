@@ -56,6 +56,26 @@ module Scheduling =
             OpenHours : OpenHours
         }
 
+    type Schedule =
+        {
+            Locations : Location list array
+            Times : OpenHours
+        }
+
+    let makeEmptySchedule (wkdayhrs) (wkendhrs) =
+        {
+            Locations = [|
+                [  ]
+                [  ]
+                [  ]
+                [  ]
+                [  ]
+                [  ]
+                [  ]
+            |]
+            Times = makeOpenHours wkdayhrs wkendhrs
+        } 
+
     // generator function that returns next valid Id
     type Id = Id of uint32
     // closure to make sure each id is unique
@@ -82,7 +102,7 @@ module Scheduling =
         { 
             FirstName : string
             LastName : string
-            //Availability : Schedule
+            Availability : Schedule
             //Schedule : Schedule
             EmployeeNumber : Id
             JobTitle : Position
@@ -90,10 +110,11 @@ module Scheduling =
             DesiredWeeklyHours : uint8
         }
 
-    let makeEmployee first last pos pri desiredhrs =
+    let makeEmployee first last pos pri desiredhrs availablehrs =
         { 
             FirstName = first
             LastName = last
+            Availability = availablehrs
             EmployeeNumber = nextEmployeeNum ()
             JobTitle = pos
             Priority = pri
@@ -111,3 +132,4 @@ module Scheduling =
     let chooseEmployee e1 e2  =
         if e1.Priority < e2.Priority then e1
         else e2
+
