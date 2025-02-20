@@ -108,41 +108,6 @@ module Scheduling =
             KidsScheduled : uint8
         }
 
-
-    //// helper for calculating total hours employee scheduled or worked for
-    //let getHours (t: TimeSlot) =
-    //    let timeBlock = (t.Timespan.End - t.Timespan.Start)
-    //    float timeBlock.Hours + (float timeBlock.Minutes / 60.0)
-       
-
-    //let totalHoursScheduled (e: Employee) =
-    //    let mutable totalHrs = 0.0
-    //    let days = (e.Schedule.Week |> unwrapWeek)
-    //    for day in days do
-    //        totalHrs <- totalHrs + (day.Hours |> getHours)
-    //    totalHrs
-
-    //let getMostSeniorPos (el: Employee list) =
-    //    el
-    //    |> List.minBy (fun empl -> empl.JobTitle.Id)
-    //    |> (fun e -> e.JobTitle.Id)
-    
-    //let date = System.DateOnly.FromDayNumber 3
-    //printfn $"date: {date}"
-    //let emptyWeek (startDate: System.DateOnly) =
-    //    [|
-    //        // start from monday, make weekdays
-    //        for i in 0 .. 4 do
-    //            {
-    //                Date = startDate.AddDays i
-    //                Hours = normalWeekHrs
-                        
-    //            }
-    //    |]
-    //    |> Array.append [| for i in [ 5; 6 ] do { Date = startDate.AddDays i; Hours = normalWeekendHrs } |]
-    //    |> Week
-
-
-    //let pickEmployee (el: Employee list, p: Position) =
-    //    let lowestPri =
-            
+    let chooseEmployee e1 e2  =
+        if e1.Priority < e2.Priority then e1
+        else e2
